@@ -1,23 +1,23 @@
 import json
 from typing import Tuple
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
+from cryptography.hazmat.primitives.asymmetric import rsa, padding, ec
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.exceptions import InvalidSignature
 
-def padding():
-    return padding.PSS(mgf=padding.MGF1(hashes.SHA256()), salt_length=padding.PSS.MAX_LENGTH)
+def put_padding():
+    return padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()), algorithm=hashes.SHA256(), label=None)
 
-def create_pair_keys():
+def create_rsa_pair_keys():
     '''
     This function will generate a private and public key for encryption.
     '''
-    private_key = rsa.generate_private_key(public_exponent=65537, public_exponent=65537, backend=default_backend())
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=4096, backend=default_backend())
     public_key = private_key.public_key()
     return private_key, public_key
 
 
-def seralize_public_key(public_key: rsa.RSAPublicKey):
+def seralize_public_key(public_key):
     """
     Reset the public key to its serialized version.
     """
@@ -32,7 +32,7 @@ def deseralize_public_key(public_key:str):
             default_backend()
     )
 
-def seralize_private_key(private_key: rsa.RSAPrivateKey):
+def seralize_private_key(private_key):
     """
     Reset the private key to its serialized version
     """
@@ -50,29 +50,19 @@ def deseralize_private_key(private_key:str):
             backend=default_backend()
         )
 
-def encrypt(public_key: rsa.RSAPublicKey, data:dict): 
+def rsa_encrypt(public_key: rsa.RSAPublicKey, data:dict): 
     '''
     Data is encrypted using rsa public key
     '''
-    return public_key.encrypt(json.dumps(data).encode('utf-8'), padding()).decode()
+    return public_key.encrypt(json.dumps(data).encode('utf-8'), put_padding()).hex()
 
-def decrypt(private_key: rsa.RSAPrivateKey, signature:str):
+def rsa_decrypt(private_key: rsa.RSAPrivateKey, signature:str):
     '''
     Data is decrypted using rsa private key
     '''
-    return private_key.decrypt(signature.encode('utf-8'), padding()).decode()
+    return private_key.decrypt(bytes.fromhex(signature), put_padding()).decode()
 
-def verify(public_key: rsa.RSAPublicKey, data:dict, signature: str):
-    """
-    Check if the signature can be obtained by public_key
-    """
-    signature = signature.encode('utf-8')
 
-    try:
-        public_key.verify(signature.encode('utf-8'), json.dumps(data).encode('utf-8'), padding(), hashes.SHA256())
-        return True
-    except InvalidSignature:
-        return False
     
 
 
