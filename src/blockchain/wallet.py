@@ -16,10 +16,10 @@ class Wallet:
     def __init__(self, type, data=None):
         if type not in constants.TYPES_OF_USER:
             raise exceptions.ImproperTypeError()
-        data['type'] = type
+        data['type'] = constants.TYPES_OF_USER[type]
         self.balance = constants.INITIAL_BALANCE
-        self.wallet_id = sha256(json.dumps(data)).hexdigest()
-        pri, pub = asymetric.create_pair_keys()
+        self.wallet_id = sha256(json.dumps(data).encode('utf-8')).hexdigest()
+        pri, pub = asymetric.create_rsa_pair_keys()
         self.private_key = asymetric.seralize_private_key(pri)
         self.public_key = asymetric.seralize_public_key(pub)
             

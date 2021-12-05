@@ -1,4 +1,5 @@
 from src.blockchain.transaction import Transaction
+from src.exceptions import InvalidTransaction
 class TransactionPool:
     '''
     This class will hold all the unconfirmed transaction in it and will check for transactions
@@ -8,7 +9,11 @@ class TransactionPool:
         self.transaction_map = {}
     
     def add_transaction(self, tx:Transaction):
-        self.transaction_map[tx.id] = tx
+        if Transaction.is_transaction_valid(tx.__dict__):
+            self.transaction_map[tx.id] = tx
+        else:
+            raise InvalidTransaction
+        
 
     def find_transaction_of_wallet(self, wallet_id):
         '''

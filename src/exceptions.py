@@ -15,3 +15,19 @@ class InvalidVoterData(Exception):
     
     def to_json(self):
         return json.dumps(self.__dict__)
+
+class EmptyDataPayloadError(ValueError):
+    def __init__(self, *args: object) -> None:
+        super().__init__(*args)
+        self.message = 'payload provided to function is empty'
+    
+    def to_json(self):
+        return json.dumps(self.__dict__)
+
+class InvalidTransaction(Exception):
+    def __init__(self, *args: object):
+        super().__init__(*args)
+        self.message = 'Invalid transaction data provided'
+    
+    def to_json(self):
+        return json.dumps(self.__dict__)

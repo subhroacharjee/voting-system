@@ -2,6 +2,7 @@ import json
 import uuid, time
 
 from src.blockchain.wallet import Wallet
+from src.exceptions import EmptyDataPayloadError
 class Transaction:
     '''
     The document which holds each transaction associated with voter
@@ -21,18 +22,18 @@ class Transaction:
         }
     '''
 
-    def __init__(self, sender, reciever, sender_pub_key, sender_pri_key, amount=1):
-        self.id = f'tx_{uuid.uuid1().hex}'
-        self.timestamp = time.time_ns()
+    def __init__(self, sender, reciever, sender_pub_key, sender_pri_key, amount=1, signature=None, id=None, timestamp = None):
+        self.id = id or f'tx_{uuid.uuid1().hex}'
+        self.timestamp = timestamp or time.time_ns()
         self.output = self.create_output(reciever, amount)
-        self.input = self.create_input(sender, sender_pub_key, sender_pri_key, amount)
+        self.input = self.create_input(sender, sender_pub_key, sender_pri_key, amount, signature)
 
     
-    def create_input(self, sender, pub_key, pri_key, amount):
+    def create_input(self, sender, pub_key, pri_key, amount, signature=None):
         return {
             'sender': sender,
             'senders_public_key': pub_key,
-            'signature': Wallet.create_signature(pri_key,self.output),
+            'signature': signature or Wallet.create_signature(pri_key,self.output),
             'amount': amount
         }
     
@@ -54,17 +55,29 @@ class Transaction:
         if not input_data or not output_data:
             return False
         
-        if not input_data.get('senders_public_key') or not input_data.get('signature') or not input_data.get('sender') or not input_data.get('reciever'):
+        if not input_data.get('senders_public_key') or not input_data.get('signature') or not input_data.get('sender') or not input_data.get('amount'):
             return False
         
         return Wallet.verify_signature(input_data.get('senders_public_key'),output_data, input_data.get('signature'))
     
     @staticmethod
-    def from_json(json_data, pri_key):
-        if not json_data:
-            raise ValueError('Invalid data')
-        
-        if not pri_key:
-            raise ValueError('Invalid private key of the sender')
+    def from_json(data):
+        if not data:
+            raise EmptyDataPayloadError()
+        json_data = json.loads(data)
 
-        return Transaction(json_data['input']['sender'], json_data['input']['reciever'], json_data['input']['senders_public_key'], pri_key, json_data['output']['amount'])
+        try:
+            tx = Transaction(
+                sender = json_data['input']['sender'], 
+                reciever= list(json_data['output'].keys())[0], 
+                sender_pub_key= json_data['input']['senders_public_key'], 
+                sender_pri_key= None,amount= json_data['input']['amount'], 
+                signature= json_data['input']['signature'],
+                id= json_data['id'],
+                timestamp= json_data['timestamp'])
+            if Transaction.is_transaction_valid(tx.__dict__):
+                return tx
+            return None
+        except Exception as e:
+            print(e)
+            return None
