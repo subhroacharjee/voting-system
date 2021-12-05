@@ -3,6 +3,7 @@ from typing import Tuple
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa, padding, ec
 from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature, encode_dss_signature
 from cryptography.exceptions import InvalidSignature
 
 def put_padding():
@@ -64,5 +65,14 @@ def rsa_decrypt(private_key: rsa.RSAPrivateKey, signature:str):
 
 
     
+def sign(private_key:rsa.RSAPrivateKey, data:str):
+    return private_key.sign(data.encode('utf-8'),
+        padding.PSS(mgf=padding.MGF1(hashes.SHA256()), salt_length=padding.PSS.MAX_LENGTH)
+        , hashes.SHA256()).hex()
 
-
+def verify(public_key, data:str, signature):
+    try:
+        public_key.verify(bytes.fromhex(signature), data.encode('utf-8'), padding.PSS(mgf=padding.MGF1(hashes.SHA256()), salt_length=padding.PSS.MAX_LENGTH), hashes.SHA256())
+        return True
+    except InvalidSignature:
+        return False

@@ -16,14 +16,24 @@ class Wallet:
     def __init__(self, type, data=None):
         if type not in constants.TYPES_OF_USER:
             raise exceptions.ImproperTypeError()
+        data['type'] = type
+        self.balance = constants.INITIAL_BALANCE
+        self.wallet_id = sha256(json.dumps(data)).hexdigest()
+        pri, pub = asymetric.create_pair_keys()
+        self.private_key = asymetric.seralize_private_key(pri)
+        self.public_key = asymetric.seralize_public_key(pub)
+            
+    
+    @staticmethod
+    def create_signature(private_key:str, data:dict):
+        pri_k = asymetric.deseralize_private_key(private_key)
+        signature = asymetric.sign(pri_k, json.dumps(data))
+        return signature
+    
+    @staticmethod
+    def verify_signature(public_key:str, data:dict, signature:str):
+        pub_k = asymetric.deseralize_public_key(public_key)
+        return asymetric.verify(pub_k, json.dumps(data), signature)
+    
+
         
-        self.type = constants.TYPES_OF_USER[type]
-        if self.type == 'VOTER':
-            if not data:
-                raise exceptions.InvalidVoterData()
-
-            self.public_key = sha256(json.dumps(data)).hexdigest()
-            self.private_key = None
-        else:
-            self.private_key, self.public_key = asymetric.create_pair_keys()
-

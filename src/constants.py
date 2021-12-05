@@ -2,3 +2,5 @@ TYPES_OF_USER = {
     'VOTER': 0x01,
     'CANDIDATE': 0x02
 }
+
+INITIAL_BALANCE = 1

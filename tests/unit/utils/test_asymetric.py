@@ -39,3 +39,9 @@ def test_encrpyt_decrypt():
     payload = json.loads(asymetric.rsa_decrypt(private_key, ENC_DATA))
 
     assert payload == DICT_DATA
+
+def test_signature_verify():
+    private_key, public_key = asymetric.create_rsa_pair_keys()
+    payload = json.dumps(DICT_DATA)
+    signature = asymetric.sign(private_key, payload)
+    assert asymetric.verify(public_key, payload, signature)
