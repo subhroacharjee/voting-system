@@ -35,5 +35,18 @@ class Wallet:
         pub_k = asymetric.deseralize_public_key(public_key)
         return asymetric.verify(pub_k, json.dumps(data), signature)
     
-
+    @staticmethod
+    def current_balance(blockchain, wallet_id):
+        if not blockchain:
+            raise ValueError('Invalid blockchain')
         
+        current_balance = constants.INITIAL_BALANCE
+
+        for chain in blockchain.chain:
+            for tx in chain.data:
+                if tx['input']['sender'] == wallet_id:
+                    current_balance-=tx['input']['amount']
+                elif wallet_id in tx['output']:
+                    current_balance += tx['output'][wallet_id]
+        
+        return current_balance
