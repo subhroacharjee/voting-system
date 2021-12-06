@@ -65,6 +65,11 @@ class Block:
         return True, None
     
     @staticmethod
+    def from_json(data):
+        data = json.loads(data)
+        return Block(**data)
+    
+    @staticmethod
     def make_data(id, timestamp, nonce, difficulty, data, prev_hash):
         return {
             'id': id,
@@ -81,8 +86,9 @@ def adjust_difficulty(last_block: Block, timestamp):
     We would need this to adjust the mining speed for the block. we have to make sure that the difficulty is not too hard or too low.
     in case too hard it will take really long and hence in efficient, in case it's too fast there is a chance of conflict in blocks
     '''
+    x = timestamp - int(last_block.timestamp)
 
-    if last_block.difficulty < UPPER_LIMIT_MINE_RATE:
+    if x < UPPER_LIMIT_MINE_RATE:
         return last_block.difficulty + 1 
     
     if last_block.difficulty-1 > 0:

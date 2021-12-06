@@ -1,3 +1,4 @@
+import json
 from src.blockchain.block import Block, mine
 
 from tests.test_constants import INIT_BLOCK, VALID_TX
@@ -12,3 +13,4 @@ def test_block_and_mine():
     assert new_block.prev_hash == init_block.hash
     assert Block.validate(init_block, new_block)[0]
     assert new_block.data == VALID_TX
+    assert json.loads(init_block.to_json()) == INIT_BLOCK

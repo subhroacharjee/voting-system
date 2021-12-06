@@ -31,3 +31,19 @@ class InvalidTransaction(Exception):
     
     def to_json(self):
         return json.dumps(self.__dict__)
+
+class InvalidBlockError(ValueError):
+    def __init__(self, *args: object) -> None:
+        super().__init__(*args)
+        self.message = 'Invalid Block data'
+    
+    def to_json(self):
+        return json.dumps(self.__dict__)
+
+class IncomingChainIsShortError(ValueError):
+    def __init__(self, *args: object) -> None:
+        super().__init__(*args)
+        self.message = 'Incoming chain is shorter than the primary chain'
+    
+    def to_json(self):
+        return json.dumps(self.__dict__)
