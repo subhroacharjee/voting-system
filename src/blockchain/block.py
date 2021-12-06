@@ -1,7 +1,7 @@
 import uuid
 import json
 import time
-from src.constants import GENESIS_DATA, HOUR, LOWER_LIMIT_MINE_RATE
+from src.constants import GENESIS_DATA, HOUR, UPPER_LIMIT_MINE_RATE
 from src.utils import hash, hex_to_bin
 from src.exceptions import EmptyDataPayloadError
 class Block:
@@ -46,7 +46,7 @@ class Block:
         if not hex_to_bin.hex_to_bin(block.hash).startswith('0'*block.difficulty):
             return False, 'Difficulty level doesn\'t match'
         
-        block_data = block.__dict__
+        block_data = block.__dict__.copy()
         del block_data['hash']
 
         if hash.hash(block_data) != block.hash:
@@ -59,8 +59,10 @@ class Block:
         now = time.time_ns()
 
 
-        if (now - block.timestamp) > (2 * HOUR):
+        if (now - block.timestamp) > ( 2 * HOUR):
             return False, 'Block more than is 2 hours old'
+        
+        return True, None
     
     @staticmethod
     def make_data(id, timestamp, nonce, difficulty, data, prev_hash):
@@ -80,12 +82,10 @@ def adjust_difficulty(last_block: Block, timestamp):
     in case too hard it will take really long and hence in efficient, in case it's too fast there is a chance of conflict in blocks
     '''
 
-    x = timestamp - last_block.timestamp
-
-    if x < LOWER_LIMIT_MINE_RATE:
+    if last_block.difficulty < UPPER_LIMIT_MINE_RATE:
         return last_block.difficulty + 1 
     
-    if x > 0:
+    if last_block.difficulty-1 > 0:
         return last_block.difficulty - 1
 
     return 1
@@ -96,14 +96,14 @@ def mine(last_block, data):
     '''
 
     timestamp = time.time_ns()
-    id = uuid.uuid1()
+    id = f'blk_{uuid.uuid1().hex}'
     nonce = 0
 
     difficulty = adjust_difficulty(last_block, timestamp)
 
     proof = hash.hash(Block.make_data(id,timestamp, nonce,difficulty, data, last_block.hash))
 
-    while hex_to_bin.hex_to_bin(proof).startswith('0' * difficulty):
+    while not hex_to_bin.hex_to_bin(proof).startswith('0' * difficulty):
         nonce+=1
         timestamp = time.time_ns()
         difficulty = adjust_difficulty(last_block, timestamp)
