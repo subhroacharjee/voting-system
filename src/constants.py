@@ -8,7 +8,7 @@ INITIAL_BALANCE = 1
 GENESIS_DATA = {
     'id': 1,
     'timestamp': 1,
-    'last_hash': 'lsthash',
+    'prev_hash': 'lsthash',
     'data': [],
     'hash': '439e5cc4d0266de151b02bc1f9cce04292e1ce2f42632c86d24d8bd88f55594e',
     'difficulty': 3,

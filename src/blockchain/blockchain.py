@@ -3,7 +3,8 @@ from src.blockchain.block import Block, mine
 from src.blockchain.transaction import Transaction
 from src.blockchain.transactionpool import TransactionPool
 from src.blockchain.wallet import Wallet
-from src.exceptions import IncomingChainIsShortError, InvalidBlockError
+from src.exceptions import ChainValidationError, IncomingChainIsShortError, InvalidBlockError
+from src.constants import GENESIS_DATA
 class BlockChain:
     '''
     @TODO This class will hold the chain of blocks and will be responsible for list of tasks
@@ -81,6 +82,14 @@ class BlockChain:
             if chain[i] | i>0 has a valid block
             if chain has valid transaction
         '''
+        if chain[0].__dict__ != GENESIS_DATA:
+            raise ChainValidationError('Genesis block not found')
+        
+        for index in range(1, len(chain)):
+            if not Block.validate(chain[index - 1], chain[index]):
+                raise ChainValidationError('Invalid Block Found')
+            
+        BlockChain.validate_tx(chain)
         pass
 
     @staticmethod
@@ -88,6 +97,33 @@ class BlockChain:
         '''
             if chain[i].data | i > 0 contains valid transactions
             if one transaction appears only once
+            if the amount sent by each sender is valid, i.e if they have that balance
         '''
+        tx_ids = set()
+
+        for i in range(len(chain)):
+            block = chain[i]
+
+            for tx_json in block.data:
+                tx = Transaction.from_json(tx_json)
+                if not tx:
+                    raise InvalidBlockError(f"transaction {tx_json['id']} is invalid")
+                
+                if tx.id in tx_ids:
+                    raise InvalidBlockError(f"Duplicate transaction found")
+                
+                tx_ids.add(tx.id)
+
+                sender = tx.input['sender']
+                amount = tx.input['amount']
+
+                prev_block_chain = BlockChain()
+                prev_block_chain.chain = chain[0:i]
+
+                wallet_balance = Wallet.current_balance(prev_block_chain, sender)
+
+                if amount > wallet_balance:
+                    raise InvalidBlockError(f"The amount sent by {sender} in transaction {tx.id} is way above the wallet balance!")
+
         pass
 

@@ -11,6 +11,7 @@ from hashlib import sha256
 from src import constants,exceptions
 from src.utils import asymetric
 
+INITIAL_BALANCE = constants.INITIAL_BALANCE
 class Wallet:
 
     def __init__(self, type, data=None):
@@ -40,10 +41,11 @@ class Wallet:
         if not blockchain:
             raise ValueError('Invalid blockchain')
         
-        current_balance = constants.INITIAL_BALANCE
+        current_balance = INITIAL_BALANCE
 
         for chain in blockchain.chain:
             for tx in chain.data:
+                tx = json.loads(tx)
                 if tx['input']['sender'] == wallet_id:
                     current_balance-=tx['input']['amount']
                 elif wallet_id in tx['output']:

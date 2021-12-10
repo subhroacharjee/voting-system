@@ -47,3 +47,10 @@ class IncomingChainIsShortError(ValueError):
     
     def to_json(self):
         return json.dumps(self.__dict__)
+
+class ChainValidationError(Exception):
+    def __init__(self, *args: object) -> None:
+        super().__init__(*args)
+    
+    def to_json(self):
+        return json.dumps(self.__dict__)
