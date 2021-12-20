@@ -46,3 +46,15 @@ class TransactionPool:
                     del self.transaction_map[transaction['id']]
                 except KeyError:
                     pass
+    
+    @staticmethod
+    def from_serialized(json_obj):
+        import json
+        pool = TransactionPool()
+        pool_tx = json.loads(json_obj)
+
+        for tx_json in pool_tx:
+            tx = Transaction.from_json(tx_json)
+            pool.add_transaction(tx)
+        
+        return pool

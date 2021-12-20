@@ -54,3 +54,9 @@ class ChainValidationError(Exception):
     
     def to_json(self):
         return json.dumps(self.__dict__)
+
+class NoConfigFileError(Exception):
+    def __init__(self, *args: object) -> None:
+        super().__init__('No config.ini file found at current working directory')
+    def to_json(self):
+        return json.dumps(self.__dict__)
